@@ -1,19 +1,16 @@
-FROM python:3.12-slim
+FROM node:22-alpine
 
 LABEL maintainer="DevOps Engineer"
 LABEL application="webtext-app"
 
-ENV PYTHONUNBUFFERED=1
-ENV WEBTEXT="Hello World!"
-
 WORKDIR /app
 
-COPY app/server.py /app/server.py
+COPY --chown=1000:1000 app/server.js ./server.js
 
-RUN useradd --no-create-home --shell /usr/sbin/nologin appuser
+ENV NODE_ENV=production
 
-USER appuser
+USER 1000
 
 EXPOSE 80
 
-CMD ["python", "/app/server.py"]
+CMD ["node", "server.js"]
