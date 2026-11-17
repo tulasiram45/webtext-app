@@ -1,0 +1,58 @@
+---
+- name: Configure webtext application VM
+
+  hosts: webtext
+  become: true
+
+  tasks:
+
+    - name: Update apt cache
+      apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install required packages
+      apt:
+        name:
+          - docker.io
+          - curl
+          - ca-certificates
+          - gnupg
+          - git
+        state: present
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Add ubuntu user to Docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: true
+
+    - name: Install Task
+      shell: |
+        sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+      args:
+        creates: /usr/local/bin/task
+
+    - name: Install Doppler CLI
+      shell: |
+        curl -Ls https://cli.doppler.com/install.sh | sh
+      args:
+        creates: /usr/bin/doppler
+
+    - name: Verify Docker
+      command: docker --version
+      changed_when: false
+
+    - name: Verify Task
+      command: task --version
+      changed_when: false
+
+    - name: Verify Doppler
+      command: doppler --version
+      changed_when: false

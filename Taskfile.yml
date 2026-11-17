@@ -1,0 +1,70 @@
+version: '3'
+
+vars:
+  IMAGE: webtext-app
+  CONTAINER: webtext-app
+  PORT: 8081
+
+tasks:
+
+  build:
+    desc: Build Docker image
+    cmds:
+      - docker build -t {{.IMAGE}}:latest .
+
+  lint:
+    desc: Lint Dockerfile using Hadolint
+    cmds:
+      - docker run --rm -i hadolint/hadolint < Dockerfile
+
+  deploy:
+    desc: Deploy application with Development deploy text
+    cmds:
+      - docker rm -f {{.CONTAINER}} || true
+      - |
+        docker run -d \
+          --name {{.CONTAINER}} \
+          -p {{.PORT}}:80 \
+          -e WEBTEXT="Development deploy" \
+          --restart unless-stopped \
+          {{.IMAGE}}:latest
+
+  test:
+    desc: Test application response
+    cmds:
+      - |
+        RESPONSE=$(curl -fsS http://localhost:{{.PORT}})
+        echo "Response: $RESPONSE"
+        test "$RESPONSE" = "Development deploy"
+        echo "TEST PASSED"
+
+  clean:
+    desc: Stop and remove container
+    cmds:
+      - docker stop {{.CONTAINER}} || true
+      - docker rm {{.CONTAINER}} || true
+
+  cicd:
+    desc: Build, lint, deploy and test
+    deps:
+      - build
+      - lint
+    cmds:
+      - task: deploy
+      - task: test
+
+  deploywithdoppler:
+    desc: Deploy application using Doppler secrets
+    cmds:
+      - |
+        doppler run --project webtext-app --config dev -- \
+          bash -c '
+            docker rm -f webtext-app || true
+
+            docker run -d \
+              --name webtext-app \
+              -p 8081:80 \
+              -e WEBTEXT="$WEBTEXT" \
+              --restart unless-stopped \
+              webtext-app:latest
+          '
