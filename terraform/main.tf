@@ -18,17 +18,10 @@ data "aws_ami" "ubuntu" {
   owners      = ["099720109477"]
 
   filter {
-    name = "name"
-
-    values = [
-      "ubuntu/images/hvm-ssd/ubuntu-noble-24.04-amd64-server-*"
-    ]
+    name   = "image-id"
+    values = ["ami-083cf4acad89c8905"]
   }
 
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
 }
 
 resource "aws_key_pair" "webtext" {
@@ -79,3 +72,4 @@ resource "aws_instance" "webtext" {
     Environment = "dev"
     Project     = "webtext-app"
   }
+}
