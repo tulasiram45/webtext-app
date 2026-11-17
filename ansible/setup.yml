@@ -1,8 +1,12 @@
 ---
 - name: Configure webtext application VM
 
-  hosts: webtext
+  hosts: webservers
   become: true
+
+  vars:
+    app_directory: /opt/webtext-app
+    git_repository: "https://github.com/tulasiram45/webtext-app.git"
 
   tasks:
 
@@ -56,3 +60,40 @@
     - name: Verify Doppler
       command: doppler --version
       changed_when: false
+
+    # 7. Clone Git repository
+    - name: Clone webtext application
+      become: true
+      git:
+        repo: "{{ git_repository }}"
+        dest: "{{ app_directory }}"
+        version: main
+        force: yes
+
+    # 8. Build Docker image
+    - name: Build Docker image
+      become: true
+      command: task build
+      args:
+        chdir: "{{ app_directory }}"
+
+    # 9. Lint Dockerfile
+    - name: Lint Dockerfile
+      become: true
+      command: task lint
+      args:
+        chdir: "{{ app_directory }}"
+
+    # 10. Deploy application
+    - name: Deploy webtext application
+      become: true
+      command: task deploy
+      args:
+        chdir: "{{ app_directory }}"
+
+    # 11. Test application
+    - name: Test deployed application
+      become: true
+      command: task test
+      args:
+        chdir: "{{ app_directory }}"
