@@ -1,7 +1,7 @@
 ---
 - name: Configure webtext application VM
 
-  hosts: webservers
+  hosts: all
   become: true
 
   vars:
