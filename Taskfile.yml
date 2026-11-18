@@ -53,18 +53,60 @@ tasks:
       - task: deploy
       - task: test
 
+
   deploywithdoppler:
     desc: Deploy application using Doppler secrets
     cmds:
       - |
-        doppler run --project webtext-app --config dev -- \
-          bash -c '
-            docker rm -f webtext-app || true
+        set -eu
 
-            docker run -d \
-              --name webtext-app \
-              -p 8081:80 \
-              -e WEBTEXT="$WEBTEXT" \
-              --restart unless-stopped \
-              webtext-app:latest
-          '
+        if [ -z "${DOPPLER_TOKEN:-}" ]; then
+          echo "ERROR: DOPPLER_TOKEN is not set"
+          exit 1
+        fi
+
+        doppler run --project webtext-appproject --config dev -- bash -c '
+          set -eu
+          : "${WEBTEXT:?WEBTEXT is missing in Doppler}"
+
+          docker rm -f webtext-app || true
+
+          docker run -d \
+            --name webtext-app \
+            --restart unless-stopped \
+            -p 8081:80 \
+            -e WEBTEXT="$WEBTEXT" \
+            webtext-app:latest
+        '
+
+      - |
+        set -eu
+        for i in $(seq 1 15); do
+          if curl -fsS http://localhost:8081 >/dev/null; then
+            echo "Doppler application is ready"
+            exit 0
+          fi
+          sleep 2
+        done
+
+        echo "Application failed to start"
+        docker logs webtext-app
+        exit 1
+
+      - task: testdoppler
+
+  testdoppler:
+    desc: Verify Doppler deployment
+    cmds:
+      - |
+        set -eu
+
+        EXPECTED="Hello World from Doppler!"
+        RESPONSE="$(curl -fsS http://localhost:8081)"
+
+        echo "Expected: ${EXPECTED}"
+        echo "Actual: ${RESPONSE}"
+
+        test "${RESPONSE}" = "${EXPECTED}"
+
+        echo "DOPPLER TEST PASSED"
