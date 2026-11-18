@@ -21,4 +21,5 @@ variable "public_key_path" {
 variable "ssh_allowed_cidr" {
   description = "Your public IP address with /32"
   type        = string
+  default     = "13.201.22.244/32"
 }
