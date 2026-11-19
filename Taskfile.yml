@@ -65,7 +65,7 @@ tasks:
           exit 1
         fi
 
-        doppler run --project webtext-appproject --config dev -- bash -c '
+        doppler run --project webtext-app --config dev -- bash -c '
           set -eu
           : "${WEBTEXT:?WEBTEXT is missing in Doppler}"
 
