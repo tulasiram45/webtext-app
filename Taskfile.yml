@@ -25,7 +25,7 @@ tasks:
         docker run -d \
           --name {{.CONTAINER}} \
           -p {{.PORT}}:80 \
-          -e WEBTEXT="Development deploy" \
+          -e WEBTEXT="Hello World From Doppler!" \
           --restart unless-stopped \
           {{.IMAGE}}:latest
 
@@ -35,7 +35,7 @@ tasks:
       - |
         RESPONSE=$(curl -fsS http://localhost:{{.PORT}})
         echo "Response: $RESPONSE"
-        test "$RESPONSE" = "Development deploy"
+        test "$RESPONSE" = "Hello World From Doppler!"
         echo "TEST PASSED"
 
   clean:
@@ -101,7 +101,7 @@ tasks:
       - |
         set -eu
 
-        EXPECTED="Hello World from Doppler!"
+        EXPECTED="Hello World From Doppler!"
         RESPONSE="$(curl -fsS http://localhost:8081)"
 
         echo "Expected: ${EXPECTED}"
